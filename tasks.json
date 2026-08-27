@@ -51,9 +51,9 @@
       "title": "Integración con lector de tickets de EFE",
       "description": "Conectar el servicio de validación con el hardware lector que usa EFE en estaciones piloto.",
       "project": "validacion",
-      "status": "progreso",
+      "status": "backlog",
       "createdAt": "2026-08-19T14:00:00.000Z",
-      "updatedAt": "2026-08-19T14:00:00.000Z"
+      "updatedAt": "2026-08-27T17:41:08.167Z"
     },
     {
       "id": "t-7",
