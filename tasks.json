@@ -72,6 +72,15 @@
       "status": "backlog",
       "createdAt": "2026-08-07T14:00:00.000Z",
       "updatedAt": "2026-08-27T17:40:44.553Z"
+    },
+    {
+      "id": "t-mtbtnmta-j373j",
+      "title": "Puesta en marcha",
+      "description": "Validación final de producción\nImplementación\nActivación y notificación de retailers\nMonitoreo y soporte post-lanzamiento",
+      "project": "sqills",
+      "status": "backlog",
+      "createdAt": "2026-08-27T17:53:57.310Z",
+      "updatedAt": "2026-08-27T17:53:57.310Z"
     }
   ]
 }
