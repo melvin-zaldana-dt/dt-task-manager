@@ -42,9 +42,9 @@
       "title": "Definir flujo de escaneo QR en andén",
       "description": "Especificar el flujo de validación de tickets al ingresar al andén, incluyendo casos de error.",
       "project": "validacion",
-      "status": "backlog",
+      "status": "progreso",
       "createdAt": "2026-08-12T14:00:00.000Z",
-      "updatedAt": "2026-08-12T14:00:00.000Z"
+      "updatedAt": "2026-08-27T17:40:46.523Z"
     },
     {
       "id": "t-6",
