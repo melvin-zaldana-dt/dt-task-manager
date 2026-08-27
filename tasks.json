@@ -24,9 +24,9 @@
       "title": "Documentar formato de respuesta de tarifas",
       "description": "Dejar registrado el esquema de respuesta para que el equipo de producto lo revise.",
       "project": "sqills",
-      "status": "revision",
+      "status": "hecho",
       "createdAt": "2026-08-18T14:00:00.000Z",
-      "updatedAt": "2026-08-18T14:00:00.000Z"
+      "updatedAt": "2026-08-27T17:40:27.186Z"
     },
     {
       "id": "t-4",
