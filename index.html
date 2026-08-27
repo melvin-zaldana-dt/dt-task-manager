@@ -1,0 +1,1139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DT Task Manager</title>
+<meta name="description" content="Tablero de tareas Distribusion × EFE Chile — integración Sqills API y validación de tickets.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #17212b;
+    --ink-soft: #4d5860;
+    --ink-faint: #7c8790;
+    --ground: #f2f3ef;
+    --surface: #ffffff;
+    --surface-2: #fafaf8;
+    --line: #dde0da;
+    --accent: #2d6b6a;
+    --accent-ink: #ffffff;
+    --accent-soft: #e2eeed;
+    --st-backlog: #7d8266;
+    --st-backlog-soft: #ecede3;
+    --st-progreso: #3a6ea5;
+    --st-progreso-soft: #e3ebf3;
+    --st-revision: #ad7c2c;
+    --st-revision-soft: #f5ecdc;
+    --st-hecho: #3f8361;
+    --st-hecho-soft: #e3efe8;
+    --proj-sqills: #2d6b6a;
+    --proj-sqills-soft: #e2eeed;
+    --proj-validacion: #6c4f9c;
+    --proj-validacion-soft: #eae3f3;
+    --danger: #a8402c;
+    --danger-soft: #f5e2de;
+    --shadow: 0 1px 2px rgba(23,33,43,0.07), 0 10px 26px -14px rgba(23,33,43,0.22);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e7ebe9;
+      --ink-soft: #a9b3ae;
+      --ink-faint: #7c8781;
+      --ground: #11181b;
+      --surface: #1a2226;
+      --surface-2: #151c1f;
+      --line: #29343a;
+      --accent: #66b6ad;
+      --accent-ink: #0d1a19;
+      --accent-soft: #1c3230;
+      --st-backlog: #a6ab90;
+      --st-backlog-soft: #262a1f;
+      --st-progreso: #7fa9d8;
+      --st-progreso-soft: #1c2836;
+      --st-revision: #dba75d;
+      --st-revision-soft: #332a19;
+      --st-hecho: #6fbf93;
+      --st-hecho-soft: #1b2e22;
+      --proj-sqills: #66b6ad;
+      --proj-sqills-soft: #1c3230;
+      --proj-validacion: #b39ce0;
+      --proj-validacion-soft: #2a2138;
+      --danger: #e08b73;
+      --danger-soft: #3a241e;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 10px 26px -14px rgba(0,0,0,0.55);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  h1, h2, h3 {
+    font-family: 'Archivo', system-ui, sans-serif;
+    margin: 0;
+    text-wrap: balance;
+  }
+  button, input, textarea, select { font: inherit; color: inherit; }
+  .is-hidden { display: none !important; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ---------- header ---------- */
+  .topbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 22px 24px 14px;
+  }
+  .brand-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .brand-sub {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sync-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+  }
+  .sync-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--st-hecho);
+    flex-shrink: 0;
+  }
+  .sync-line[data-state="saving"] .sync-dot { background: var(--st-revision); }
+  .sync-line[data-state="error"] .sync-dot { background: var(--danger); }
+
+  .filters {
+    display: flex;
+    gap: 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+  }
+  .filter-btn {
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .filter-btn:hover { color: var(--ink); }
+  .filter-btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+  .mode-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    border-radius: 999px;
+    padding: 8px 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mode-btn:hover { color: var(--ink); border-color: var(--accent); }
+  .mode-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 6px 8px 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .mode-chip button {
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-decoration: underline;
+    padding: 2px 4px;
+  }
+
+  .rail {
+    height: 4px;
+    margin: 0 24px 18px;
+    border-radius: 2px;
+    opacity: 0.5;
+    background-image: repeating-linear-gradient(90deg, var(--accent) 0 16px, transparent 16px 26px);
+  }
+
+  /* ---------- board ---------- */
+  .board-wrap { padding: 0 24px 44px; overflow-x: auto; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(250px, 1fr));
+    gap: 16px;
+    min-width: 920px;
+  }
+  .column {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .column-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 4px;
+  }
+  .column-name { font-size: 0.92rem; font-weight: 700; }
+  .column-tally {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink-faint);
+  }
+  .column[data-status="backlog"] .column-tally { background: var(--st-backlog-soft); color: var(--st-backlog); }
+  .column[data-status="progreso"] .column-tally { background: var(--st-progreso-soft); color: var(--st-progreso); }
+  .column[data-status="revision"] .column-tally { background: var(--st-revision-soft); color: var(--st-revision); }
+  .column[data-status="hecho"] .column-tally { background: var(--st-hecho-soft); color: var(--st-hecho); }
+
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 44px;
+    border-radius: 8px;
+    transition: background 0.12s;
+  }
+  .stack.is-target { background: var(--accent-soft); }
+  .stack-empty {
+    color: var(--ink-faint);
+    font-size: 0.8rem;
+    padding: 12px 4px;
+    text-align: center;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card.is-dragging { opacity: 0.4; }
+  .card[draggable="true"] { cursor: grab; }
+  .tag {
+    align-self: flex-start;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .tag[data-project="sqills"] { background: var(--proj-sqills-soft); color: var(--proj-sqills); }
+  .tag[data-project="validacion"] { background: var(--proj-validacion-soft); color: var(--proj-validacion); }
+  .card-name { font-size: 0.92rem; font-weight: 600; line-height: 1.3; }
+  .card-note { margin: 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.45; }
+  .card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .card-when {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+  }
+  .card-tools { display: flex; gap: 2px; }
+  .tool {
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ink-faint);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    cursor: pointer;
+  }
+  .tool:hover:not(:disabled) { background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+  .tool:disabled { opacity: 0.3; cursor: default; }
+
+  .add-btn {
+    border: 1px dashed var(--line);
+    background: transparent;
+    color: var(--ink-soft);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  .add-btn:hover { background: var(--surface); color: var(--ink); border-color: var(--accent); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .btn-fill { background: var(--accent); color: var(--accent-ink); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-warn { background: var(--danger); color: #fff; }
+  .btn-link {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 9px 2px;
+  }
+
+  /* ---------- modals ---------- */
+  .veil {
+    position: fixed;
+    inset: 0;
+    background: rgba(17,24,27,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 20;
+  }
+  .sheet {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 450px;
+    padding: 22px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .sheet-title { font-size: 1.15rem; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .field-name { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+  .field input, .field textarea, .field select {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 10px;
+    width: 100%;
+  }
+  .field textarea { resize: vertical; min-height: 66px; }
+  .field-hint { font-size: 0.74rem; color: var(--ink-faint); line-height: 1.5; }
+  .field-hint a { color: var(--accent); }
+  .pair { display: flex; gap: 12px; }
+  .pair .field { flex: 1; }
+  .sheet-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .sheet-foot-right { display: flex; gap: 8px; margin-left: auto; }
+  .confirm-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: var(--danger-soft);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    margin-top: 14px;
+  }
+  .confirm-strip span { flex: 1; min-width: 160px; }
+  .confirm-strip .btn { padding: 6px 12px; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--ground);
+    padding: 11px 18px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    box-shadow: var(--shadow);
+    z-index: 30;
+    max-width: calc(100vw - 40px);
+    text-align: center;
+  }
+
+  .setup-note {
+    margin: 0 24px 18px;
+    background: var(--st-revision-soft);
+    color: var(--st-revision);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .setup-note code {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: 0.82em;
+  }
+
+  @media (max-width: 720px) {
+    .topbar { padding: 18px 16px 12px; }
+    .rail, .setup-note { margin-left: 16px; margin-right: 16px; }
+    .board-wrap { padding: 0 16px 32px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1 class="brand-name">DT Task Manager</h1>
+    <p class="brand-sub">Distribusion × EFE Chile — Sqills API y validación de tickets</p>
+  </div>
+  <div class="topbar-right">
+    <div class="sync-line" id="sync" data-state="ok">
+      <span class="sync-dot" aria-hidden="true"></span>
+      <span id="sync-text">Cargando…</span>
+    </div>
+    <nav class="filters" id="filters" aria-label="Filtrar por proyecto">
+      <button type="button" class="filter-btn" data-project="todos" aria-pressed="true">Todos</button>
+      <button type="button" class="filter-btn" data-project="sqills" aria-pressed="false">Sqills API</button>
+      <button type="button" class="filter-btn" data-project="validacion" aria-pressed="false">Validación de Ticket</button>
+    </nav>
+    <button type="button" class="mode-btn" id="btn-mode">Modo edición</button>
+    <div class="mode-chip is-hidden" id="mode-chip">
+      <span>Modo edición</span>
+      <button type="button" id="btn-lock">Salir</button>
+    </div>
+  </div>
+</header>
+
+<div class="rail" aria-hidden="true"></div>
+
+<div class="setup-note is-hidden" id="setup-note"></div>
+
+<div class="board-wrap">
+  <div class="board" id="board"></div>
+</div>
+
+<!-- Modal de tarea -->
+<div class="veil is-hidden" id="task-veil">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="task-sheet-title">
+    <h2 class="sheet-title" id="task-sheet-title">Nueva tarea</h2>
+    <form id="task-form" novalidate>
+      <label class="field">
+        <span class="field-name">Título</span>
+        <input type="text" id="in-title" maxlength="120" autocomplete="off" required>
+      </label>
+      <label class="field">
+        <span class="field-name">Descripción</span>
+        <textarea id="in-desc" rows="3" maxlength="600"></textarea>
+      </label>
+      <div class="pair">
+        <label class="field">
+          <span class="field-name">Proyecto</span>
+          <select id="in-project">
+            <option value="sqills">Integración API Sqills</option>
+            <option value="validacion">Validación de Ticket</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-name">Estado</span>
+          <select id="in-status">
+            <option value="backlog">Backlog</option>
+            <option value="progreso">En progreso</option>
+            <option value="revision">En revisión</option>
+            <option value="hecho">Hecho</option>
+          </select>
+        </label>
+      </div>
+      <div class="sheet-foot">
+        <button type="button" class="btn-link is-hidden" id="btn-del">Eliminar tarea</button>
+        <div class="sheet-foot-right">
+          <button type="button" class="btn btn-ghost" id="btn-task-cancel">Cancelar</button>
+          <button type="submit" class="btn btn-fill" id="btn-task-save">Guardar</button>
+        </div>
+      </div>
+      <div class="confirm-strip is-hidden" id="del-confirm">
+        <span>¿Eliminar esta tarea? No se puede deshacer.</span>
+        <button type="button" class="btn btn-ghost" id="btn-del-no">No</button>
+        <button type="button" class="btn btn-warn" id="btn-del-yes">Sí, eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de token -->
+<div class="veil is-hidden" id="token-veil">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="token-sheet-title">
+    <h2 class="sheet-title" id="token-sheet-title">Activar modo edición</h2>
+    <form id="token-form" novalidate>
+      <div class="field">
+        <span class="field-name">Token de acceso de GitHub</span>
+        <input type="password" id="in-token" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+        <span class="field-hint">
+          Necesitas un <strong>fine-grained personal access token</strong> con permiso
+          <code>Contents: Read and write</code> solo sobre este repositorio.
+          Se guarda únicamente en este navegador y nunca se envía a otro lugar que a la API de GitHub.
+        </span>
+      </div>
+      <div class="sheet-foot">
+        <div class="sheet-foot-right">
+          <button type="button" class="btn btn-ghost" id="btn-token-cancel">Cancelar</button>
+          <button type="submit" class="btn btn-fill" id="btn-token-save">Activar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast is-hidden" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN — edita estos tres valores tras crear el repo
+   ============================================================ */
+const CONFIG = {
+  owner:  'melvin-zaldana-dt',   // ej. 'distribusion'
+  repo:   'dt-task-manager',    // nombre del repositorio
+  branch: 'main',               // rama que publica GitHub Pages
+  path:   'tasks.json'          // no cambiar salvo que muevas el archivo
+};
+
+/* ============================================================
+   Constantes de dominio
+   ============================================================ */
+const COLUMNS = [
+  { key: 'backlog',  name: 'Backlog' },
+  { key: 'progreso', name: 'En progreso' },
+  { key: 'revision', name: 'En revisión' },
+  { key: 'hecho',    name: 'Hecho' }
+];
+const PROJECTS = {
+  sqills:     { tag: 'Sqills API' },
+  validacion: { tag: 'Validación' }
+};
+const STATUS_KEYS = COLUMNS.map(c => c.key);
+const PROJECT_KEYS = Object.keys(PROJECTS);
+const TOKEN_KEY = 'dt-task-manager:token';
+const POLL_MS = 60000;
+
+/* ============================================================
+   Estado
+   ============================================================ */
+let tasks = [];
+let fileSha = null;        // sha del blob tasks.json (necesario para escribir)
+let token = null;          // PAT en memoria; espejo en localStorage
+let canEdit = false;
+let filter = 'todos';
+let editingId = null;
+let writing = false;
+let lastLoadedAt = null;
+let pollTimer = null;
+
+/* ============================================================
+   Utilidades
+   ============================================================ */
+const $ = id => document.getElementById(id);
+
+function readStoredToken() {
+  try { return localStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+}
+function writeStoredToken(value) {
+  try {
+    if (value) localStorage.setItem(TOKEN_KEY, value);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch (e) { /* almacenamiento bloqueado: el token vive solo en memoria */ }
+}
+
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+function base64ToUtf8(b64) {
+  const bin = atob(String(b64).replace(/\s/g, ''));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function newId() {
+  return 't-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+}
+
+function shortDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  try {
+    return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'short' }).format(d);
+  } catch (e) {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+function relativeTime(date) {
+  const secs = Math.round((Date.now() - date.getTime()) / 1000);
+  if (secs < 45) return 'recién';
+  if (secs < 90) return 'hace 1 min';
+  const mins = Math.round(secs / 60);
+  if (mins < 60) return 'hace ' + mins + ' min';
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return 'hace ' + hrs + ' h';
+  return 'hace ' + Math.round(hrs / 24) + ' d';
+}
+
+function isConfigured() {
+  return CONFIG.owner && !CONFIG.owner.startsWith('TU-');
+}
+
+function sanitizeTask(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const status = STATUS_KEYS.includes(raw.status) ? raw.status : 'backlog';
+  const project = PROJECT_KEYS.includes(raw.project) ? raw.project : 'sqills';
+  const title = typeof raw.title === 'string' ? raw.title.trim().slice(0, 120) : '';
+  if (!title) return null;
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : newId(),
+    title: title,
+    description: typeof raw.description === 'string' ? raw.description.slice(0, 600) : '',
+    project: project,
+    status: status,
+    createdAt: raw.createdAt || new Date().toISOString(),
+    updatedAt: raw.updatedAt || raw.createdAt || new Date().toISOString()
+  };
+}
+
+function parsePayload(text) {
+  const data = JSON.parse(text);
+  const list = Array.isArray(data) ? data : (data && Array.isArray(data.tasks) ? data.tasks : []);
+  return list.map(sanitizeTask).filter(Boolean);
+}
+
+function serializePayload(list) {
+  return JSON.stringify({ version: 1, tasks: list }, null, 2) + '\n';
+}
+
+/* ============================================================
+   Presentación de estado
+   ============================================================ */
+function setSync(state, text) {
+  const el = $('sync');
+  el.dataset.state = state;
+  $('sync-text').textContent = text;
+}
+
+function refreshSyncLine() {
+  if (writing) return;
+  if (!lastLoadedAt) return;
+  setSync('ok', (canEdit ? 'Sincronizado ' : 'Actualizado ') + relativeTime(lastLoadedAt));
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.remove('is-hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('is-hidden'), 4000);
+}
+
+function showSetupNote(html) {
+  const el = $('setup-note');
+  el.innerHTML = html;
+  el.classList.remove('is-hidden');
+}
+
+/* ============================================================
+   Lectura de datos
+   ============================================================ */
+async function loadPublic() {
+  const res = await fetch('./' + CONFIG.path + '?t=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('http_' + res.status);
+  return parsePayload(await res.text());
+}
+
+async function loadViaApi() {
+  const url = 'https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
+              '/contents/' + encodeURIComponent(CONFIG.path) + '?ref=' + encodeURIComponent(CONFIG.branch);
+  const res = await fetch(url, {
+    cache: 'no-store',
+    headers: {
+      'Accept': 'application/vnd.github+json',
+      'Authorization': 'Bearer ' + token,
+      'X-GitHub-Api-Version': '2022-11-28'
+    }
+  });
+  if (!res.ok) {
+    const err = new Error('api_' + res.status);
+    err.status = res.status;
+    throw err;
+  }
+  const body = await res.json();
+  fileSha = body.sha;
+  return parsePayload(base64ToUtf8(body.content || ''));
+}
+
+async function refresh(silent) {
+  if (writing) return;
+  try {
+    tasks = canEdit ? await loadViaApi() : await loadPublic();
+    lastLoadedAt = new Date();
+    render();
+    refreshSyncLine();
+  } catch (err) {
+    if (err && err.status === 401) {
+      dropToken();
+      toast('El token de GitHub dejó de ser válido. Vuelve a activar el modo edición.');
+      return;
+    }
+    if (!silent) {
+      setSync('error', 'Sin conexión con los datos');
+      toast('No se pudieron cargar las tareas. Revisa tu conexión y recarga.');
+    }
+  }
+}
+
+/* ============================================================
+   Escritura (solo modo edición)
+   ============================================================ */
+async function commit(nextTasks, message) {
+  if (!canEdit) { toast('Activa el modo edición para modificar el tablero.'); return false; }
+
+  const previous = tasks;
+  tasks = nextTasks;
+  render();
+  writing = true;
+  setSync('saving', 'Guardando…');
+
+  const url = 'https://api.github.com/repos/' + CONFIG.owner + '/' + CONFIG.repo +
+              '/contents/' + encodeURIComponent(CONFIG.path);
+  try {
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': 'Bearer ' + token,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: message,
+        content: utf8ToBase64(serializePayload(nextTasks)),
+        sha: fileSha,
+        branch: CONFIG.branch
+      })
+    });
+
+    if (res.status === 409 || res.status === 422) {
+      tasks = previous;
+      writing = false;
+      render();
+      await refresh(true);
+      toast('Alguien más guardó un cambio primero. Recargué el tablero — vuelve a aplicar el tuyo.');
+      return false;
+    }
+    if (res.status === 401 || res.status === 403) {
+      tasks = previous;
+      writing = false;
+      render();
+      dropToken();
+      toast('El token no tiene permiso de escritura sobre este repositorio.');
+      return false;
+    }
+    if (!res.ok) throw new Error('api_' + res.status);
+
+    const body = await res.json();
+    if (body && body.content && body.content.sha) fileSha = body.content.sha;
+    lastLoadedAt = new Date();
+    writing = false;
+    setSync('ok', 'Guardado · publicación en ~1 min');
+    setTimeout(refreshSyncLine, 8000);
+    return true;
+  } catch (err) {
+    tasks = previous;
+    writing = false;
+    render();
+    setSync('error', 'No se pudo guardar');
+    toast('No se pudo guardar el cambio. Revisa tu conexión e intenta de nuevo.');
+    return false;
+  }
+}
+
+/* ============================================================
+   Modo edición
+   ============================================================ */
+async function applyToken(candidate) {
+  const previousToken = token;
+  const previousCanEdit = canEdit;
+  token = candidate;
+  canEdit = true;
+  try {
+    tasks = await loadViaApi();
+    lastLoadedAt = new Date();
+    writeStoredToken(candidate);
+    $('btn-mode').classList.add('is-hidden');
+    $('mode-chip').classList.remove('is-hidden');
+    render();
+    refreshSyncLine();
+    return true;
+  } catch (err) {
+    token = previousToken;
+    canEdit = previousCanEdit;
+    if (err && (err.status === 401 || err.status === 403)) {
+      toast('Token inválido o sin permiso sobre este repositorio.');
+    } else if (err && err.status === 404) {
+      toast('No encuentro ' + CONFIG.path + ' en ' + CONFIG.owner + '/' + CONFIG.repo + '. Revisa la configuración.');
+    } else {
+      toast('No se pudo validar el token. Revisa tu conexión.');
+    }
+    return false;
+  }
+}
+
+function dropToken() {
+  token = null;
+  canEdit = false;
+  fileSha = null;
+  writeStoredToken(null);
+  $('btn-mode').classList.remove('is-hidden');
+  $('mode-chip').classList.add('is-hidden');
+  closeTaskSheet();
+  render();
+  refreshSyncLine();
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function cardMarkup(task, columnIndex) {
+  const tools = canEdit ? `
+    <span class="card-tools">
+      <button type="button" class="tool" data-act="move" data-id="${task.id}" data-dir="-1"
+              title="Mover a la columna anterior" ${columnIndex === 0 ? 'disabled' : ''}>&lsaquo;</button>
+      <button type="button" class="tool" data-act="move" data-id="${task.id}" data-dir="1"
+              title="Mover a la siguiente columna" ${columnIndex === COLUMNS.length - 1 ? 'disabled' : ''}>&rsaquo;</button>
+      <button type="button" class="tool" data-act="edit" data-id="${task.id}">Editar</button>
+    </span>` : '';
+
+  return `
+    <article class="card" data-id="${task.id}"${canEdit ? ' draggable="true"' : ''}>
+      <span class="tag" data-project="${task.project}"></span>
+      <h3 class="card-name"></h3>
+      ${task.description ? '<p class="card-note"></p>' : ''}
+      <div class="card-foot">
+        <time class="card-when">${shortDate(task.createdAt)}</time>
+        ${tools}
+      </div>
+    </article>`;
+}
+
+function render() {
+  const board = $('board');
+  board.innerHTML = COLUMNS.map((col, i) => {
+    const items = tasks.filter(t =>
+      t.status === col.key && (filter === 'todos' || t.project === filter)
+    );
+    const body = items.length
+      ? items.map(t => cardMarkup(t, i)).join('')
+      : '<p class="stack-empty">Sin tareas</p>';
+    const add = canEdit
+      ? `<button type="button" class="add-btn" data-act="add" data-status="${col.key}">+ Agregar tarea</button>`
+      : '';
+    return `
+      <section class="column" data-status="${col.key}">
+        <div class="column-head">
+          <h2 class="column-name">${col.name}</h2>
+          <span class="column-tally">${items.length}</span>
+        </div>
+        <div class="stack" data-status="${col.key}">${body}</div>
+        ${add}
+      </section>`;
+  }).join('');
+
+  // Texto insertado como textContent para evitar inyección de HTML
+  tasks.forEach(t => {
+    const el = board.querySelector('.card[data-id="' + CSS.escape(t.id) + '"]');
+    if (!el) return;
+    el.querySelector('.tag').textContent = (PROJECTS[t.project] || {}).tag || t.project;
+    el.querySelector('.card-name').textContent = t.title;
+    const note = el.querySelector('.card-note');
+    if (note) note.textContent = t.description;
+  });
+}
+
+/* ============================================================
+   Modal de tarea
+   ============================================================ */
+function openTaskSheet(task, presetStatus) {
+  editingId = task ? task.id : null;
+  $('task-sheet-title').textContent = task ? 'Editar tarea' : 'Nueva tarea';
+  $('in-title').value = task ? task.title : '';
+  $('in-desc').value = task ? task.description : '';
+  $('in-project').value = task ? task.project : (filter !== 'todos' ? filter : 'sqills');
+  $('in-status').value = task ? task.status : (presetStatus || 'backlog');
+  $('btn-del').classList.toggle('is-hidden', !task);
+  $('del-confirm').classList.add('is-hidden');
+  $('task-veil').classList.remove('is-hidden');
+  $('in-title').focus();
+}
+
+function closeTaskSheet() {
+  $('task-veil').classList.add('is-hidden');
+  $('del-confirm').classList.add('is-hidden');
+  editingId = null;
+}
+
+async function submitTask(event) {
+  event.preventDefault();
+  const title = $('in-title').value.trim();
+  if (!title) { toast('Escribe un título para la tarea.'); $('in-title').focus(); return; }
+
+  const description = $('in-desc').value.trim();
+  const project = $('in-project').value;
+  const status = $('in-status').value;
+  const now = new Date().toISOString();
+
+  let next, message;
+  if (editingId) {
+    next = tasks.map(t => t.id === editingId
+      ? Object.assign({}, t, { title, description, project, status, updatedAt: now })
+      : t);
+    message = 'Actualiza tarea: ' + title;
+  } else {
+    next = tasks.concat([{
+      id: newId(), title, description, project, status, createdAt: now, updatedAt: now
+    }]);
+    message = 'Agrega tarea: ' + title;
+  }
+
+  closeTaskSheet();
+  await commit(next, message);
+}
+
+async function deleteTask() {
+  const target = tasks.find(t => t.id === editingId);
+  if (!target) return;
+  const next = tasks.filter(t => t.id !== editingId);
+  const label = target.title;
+  closeTaskSheet();
+  await commit(next, 'Elimina tarea: ' + label);
+}
+
+async function moveTask(id, delta) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  const from = STATUS_KEYS.indexOf(task.status);
+  const to = from + delta;
+  if (to < 0 || to >= STATUS_KEYS.length) return;
+  const status = STATUS_KEYS[to];
+  const next = tasks.map(t => t.id === id
+    ? Object.assign({}, t, { status, updatedAt: new Date().toISOString() })
+    : t);
+  await commit(next, 'Mueve "' + task.title + '" a ' + COLUMNS[to].name);
+}
+
+/* ============================================================
+   Eventos
+   ============================================================ */
+function onBoardClick(event) {
+  const btn = event.target.closest('[data-act]');
+  if (!btn) return;
+  const act = btn.dataset.act;
+  if (act === 'add') { openTaskSheet(null, btn.dataset.status); return; }
+  if (act === 'edit') {
+    const task = tasks.find(t => t.id === btn.dataset.id);
+    if (task) openTaskSheet(task);
+    return;
+  }
+  if (act === 'move') moveTask(btn.dataset.id, parseInt(btn.dataset.dir, 10));
+}
+
+function onDragStart(event) {
+  const card = event.target.closest('.card');
+  if (!card || !canEdit) return;
+  event.dataTransfer.setData('text/plain', card.dataset.id);
+  event.dataTransfer.effectAllowed = 'move';
+  card.classList.add('is-dragging');
+}
+function onDragEnd() {
+  document.querySelectorAll('.is-dragging').forEach(el => el.classList.remove('is-dragging'));
+  document.querySelectorAll('.stack.is-target').forEach(el => el.classList.remove('is-target'));
+}
+function onDragOver(event) {
+  if (!canEdit) return;
+  const stack = event.target.closest('.stack');
+  if (!stack) return;
+  event.preventDefault();
+  stack.classList.add('is-target');
+}
+function onDragLeave(event) {
+  const stack = event.target.closest('.stack');
+  if (stack) stack.classList.remove('is-target');
+}
+async function onDrop(event) {
+  if (!canEdit) return;
+  const stack = event.target.closest('.stack');
+  if (!stack) return;
+  event.preventDefault();
+  stack.classList.remove('is-target');
+  const id = event.dataTransfer.getData('text/plain');
+  const status = stack.dataset.status;
+  const task = tasks.find(t => t.id === id);
+  if (!task || task.status === status) return;
+  const next = tasks.map(t => t.id === id
+    ? Object.assign({}, t, { status, updatedAt: new Date().toISOString() })
+    : t);
+  const colName = (COLUMNS.find(c => c.key === status) || {}).name || status;
+  await commit(next, 'Mueve "' + task.title + '" a ' + colName);
+}
+
+function onFilterClick(event) {
+  const btn = event.target.closest('.filter-btn');
+  if (!btn) return;
+  filter = btn.dataset.project;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.setAttribute('aria-pressed', String(b === btn));
+  });
+  render();
+}
+
+function onKeydown(event) {
+  if (event.key !== 'Escape') return;
+  if (!$('task-veil').classList.contains('is-hidden')) closeTaskSheet();
+  else if (!$('token-veil').classList.contains('is-hidden')) $('token-veil').classList.add('is-hidden');
+}
+
+async function onTokenSubmit(event) {
+  event.preventDefault();
+  const value = $('in-token').value.trim();
+  if (!value) { toast('Pega tu token de GitHub para continuar.'); return; }
+  $('btn-token-save').disabled = true;
+  const ok = await applyToken(value);
+  $('btn-token-save').disabled = false;
+  if (ok) {
+    $('in-token').value = '';
+    $('token-veil').classList.add('is-hidden');
+    toast('Modo edición activo. Cada cambio queda como un commit en el repositorio.');
+  }
+}
+
+/* ============================================================
+   Arranque
+   ============================================================ */
+async function start() {
+  if (!isConfigured()) {
+    showSetupNote(
+      'Falta configurar el repositorio. Abre <code>index.html</code> y reemplaza ' +
+      '<code>CONFIG.owner</code> con tu usuario u organización de GitHub. ' +
+      'Mientras tanto el tablero funciona en modo lectura con los datos de <code>tasks.json</code>.'
+    );
+  }
+
+  $('filters').addEventListener('click', onFilterClick);
+  const board = $('board');
+  board.addEventListener('click', onBoardClick);
+  board.addEventListener('dragstart', onDragStart);
+  board.addEventListener('dragend', onDragEnd);
+  board.addEventListener('dragover', onDragOver);
+  board.addEventListener('dragleave', onDragLeave);
+  board.addEventListener('drop', onDrop);
+
+  $('task-form').addEventListener('submit', submitTask);
+  $('btn-task-cancel').addEventListener('click', closeTaskSheet);
+  $('btn-del').addEventListener('click', () => $('del-confirm').classList.remove('is-hidden'));
+  $('btn-del-no').addEventListener('click', () => $('del-confirm').classList.add('is-hidden'));
+  $('btn-del-yes').addEventListener('click', deleteTask);
+  $('task-veil').addEventListener('click', e => { if (e.target.id === 'task-veil') closeTaskSheet(); });
+
+  $('btn-mode').addEventListener('click', () => {
+    if (!isConfigured()) { toast('Primero configura owner y repo en index.html.'); return; }
+    $('token-veil').classList.remove('is-hidden');
+    $('in-token').focus();
+  });
+  $('btn-lock').addEventListener('click', () => {
+    dropToken();
+    toast('Saliste del modo edición.');
+  });
+  $('token-form').addEventListener('submit', onTokenSubmit);
+  $('btn-token-cancel').addEventListener('click', () => $('token-veil').classList.add('is-hidden'));
+  $('token-veil').addEventListener('click', e => { if (e.target.id === 'token-veil') $('token-veil').classList.add('is-hidden'); });
+
+  document.addEventListener('keydown', onKeydown);
+
+  // Primero pinta lo público (rápido), luego intenta reanudar modo edición
+  await refresh(false);
+
+  const stored = readStoredToken();
+  if (stored && isConfigured()) await applyToken(stored);
+
+  pollTimer = setInterval(() => {
+    if (writing) return;
+    if (!$('task-veil').classList.contains('is-hidden')) return;
+    if (!$('token-veil').classList.contains('is-hidden')) return;
+    refresh(true);
+  }, POLL_MS);
+
+  setInterval(refreshSyncLine, 30000);
+}
+
+start();
+</script>
+</body>
+</html>
