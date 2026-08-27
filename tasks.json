@@ -81,6 +81,15 @@
       "status": "backlog",
       "createdAt": "2026-08-27T17:53:57.310Z",
       "updatedAt": "2026-08-27T17:53:57.310Z"
+    },
+    {
+      "id": "t-mtbtnzo5-q4nkf",
+      "title": "Certificación Sqills",
+      "description": "Completar casos de prueba de certificación\nValidación del flujo de reserva de principio a fin\nProbar la emisión y verificación de boletos\nValidación de conciliación\nAprobación de la certificación",
+      "project": "sqills",
+      "status": "revision",
+      "createdAt": "2026-08-27T17:54:13.973Z",
+      "updatedAt": "2026-08-27T17:54:13.973Z"
     }
   ]
 }
