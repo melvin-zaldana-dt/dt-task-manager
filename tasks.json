@@ -15,9 +15,9 @@
       "title": "Pruebas de autenticación OAuth2",
       "description": "Validar el flujo de client credentials contra el ambiente de pruebas de Sqills.",
       "project": "sqills",
-      "status": "progreso",
+      "status": "revision",
       "createdAt": "2026-08-14T14:00:00.000Z",
-      "updatedAt": "2026-08-14T14:00:00.000Z"
+      "updatedAt": "2026-08-27T17:40:29.423Z"
     },
     {
       "id": "t-3",
