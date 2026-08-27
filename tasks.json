@@ -69,9 +69,9 @@
       "title": "Piloto en Estación Central",
       "description": "Primera prueba controlada con pasajeros reales en Estación Central.",
       "project": "validacion",
-      "status": "revision",
+      "status": "progreso",
       "createdAt": "2026-08-07T14:00:00.000Z",
-      "updatedAt": "2026-08-27T17:40:41.739Z"
+      "updatedAt": "2026-08-27T17:40:43.136Z"
     }
   ]
 }
